@@ -1222,25 +1222,27 @@ kopf.controller('GlobalController', ['$scope', '$location', '$sce', '$window',
   function($scope, $location, $sce, $window, AlertService, ElasticService,
            ExternalSettingsService, PageService) {
 
-    $scope.version = '2.0.1';
+    $scope.version = '5.0.0';
 
     $scope.modal = new ModalControls();
+    var alertedOnce = false;
 
     $scope.$watch(
-        function() {
-          return ElasticService.cluster;
+        function () {
+            return ElasticService.cluster;
         },
-        function(newValue, oldValue) {
-          var version = ElasticService.getVersion();
-          if (version && version.isValid()) {
-            var major = version.getMajor();
-            if (major != parseInt($scope.version.charAt(0))) {
-              AlertService.warn(
-                  'This version of kopf is not compatible with your ES version',
-                  'Upgrading to newest supported version is recommended'
-              );
+        function (newValue, oldValue) {
+            var version = ElasticService.getVersion();
+            if (version && version.isValid()) {
+                var major = version.getMajor();
+                if (major != parseInt($scope.version.charAt(0)) && !alertedOnce) {
+                    AlertService.warn(
+                        'This version of kopf is not compatible with your ES version',
+                        'Upgrading to newest supported version is recommeded'
+                    );
+                    alertedOnce = true;
+                }
             }
-          }
         }
     );
 
@@ -1266,7 +1268,7 @@ kopf.controller('GlobalController', ['$scope', '$location', '$sce', '$window',
             host = url.substring(0, url.indexOf('/_plugin/kopf'));
           } else {
             host = $location.protocol() + '://' + $location.host() +
-                ':' + $location.port();
+                ':' + ExternalSettingsService.getElasticsearchPort();
           }
         }
         ElasticService.connect(host);
@@ -5560,6 +5562,8 @@ kopf.factory('ExplainService', ['$TreeDnDConvert',
 kopf.factory('ExternalSettingsService', ['DebugService',
   function(DebugService) {
 
+    var ES_PORT = 'elasticsearch_port';
+
     var KEY = 'kopfSettings';
 
     var ES_ROOT_PATH = 'elasticsearch_root_path';
@@ -5611,6 +5615,10 @@ kopf.factory('ExternalSettingsService', ['DebugService',
         };
       });
       return settings;
+    };
+
+    this.getElasticsearchPort = function () {
+      return this.getSettings()[ES_PORT];
     };
 
     this.getElasticsearchRootPath = function() {
