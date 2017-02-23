@@ -1267,7 +1267,7 @@ kopf.controller('GlobalController', ['$scope', '$location', '$sce', '$window',
           } else if (url.indexOf('/_plugin/kopf') > -1) {
             host = url.substring(0, url.indexOf('/_plugin/kopf'));
           } else {
-            host = $location.protocol() + '://' + $location.host() +
+            host = $location.protocol() + '://' + ExternalSettingsService.getElasticsearchHost() +
                 ':' + ExternalSettingsService.getElasticsearchPort();
           }
         }
@@ -5564,6 +5564,8 @@ kopf.factory('ExternalSettingsService', ['DebugService',
 
     var ES_PORT = 'elasticsearch_port';
 
+    var ES_HOST = 'location';
+
     var KEY = 'kopfSettings';
 
     var ES_ROOT_PATH = 'elasticsearch_root_path';
@@ -5615,6 +5617,10 @@ kopf.factory('ExternalSettingsService', ['DebugService',
         };
       });
       return settings;
+    };
+
+    this.getElasticsearchHost = function () {
+      return this.getSettings()[ES_HOST];
     };
 
     this.getElasticsearchPort = function () {
